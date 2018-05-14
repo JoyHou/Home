@@ -2,7 +2,7 @@ body {
     background-image: url("assets/bg.jpg");
     background-position: left top;
     background-repeat: no-repeat;
-    font-family: "Comic Sans MS", cursive, sans-serif;
+    font-family: "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;;
 }
 
 
@@ -75,7 +75,7 @@ body {
     height: 40px;
     font-size: 18px;
     width: 80%;
-    font-family: "Comic Sans MS", cursive, sans-serif;
+    font-family: "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
     border-radius: 5px;
 }
 
@@ -90,7 +90,7 @@ body {
     background-color: lightseagreen;
     font-size: 24px;
     border-radius: 5px;
-    font-family: "Comic Sans MS", cursive, sans-serif;
+    font-family: "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
 }
 
 #address {
@@ -98,8 +98,8 @@ body {
 
 }
 #instruction_text {
-    color: white;
-    font-weight: lighter;
+    margin-top: 20%;
+    font-size: 14px;
 }
 
 .history-title {
