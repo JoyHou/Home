@@ -1,0 +1,128 @@
+body {
+    background-image: url("assets/bg.jpg");
+    background-position: left top;
+    background-repeat: no-repeat;
+    font-family: "Comic Sans MS", cursive, sans-serif;
+}
+
+
+.App {
+  text-align: center;
+    width: 70%;
+    margin: 20px auto auto auto;
+}
+
+.App-mobile {
+    text-align: center;
+    margin-top: 20px;
+}
+
+#instruction_component {
+    width: 30%;
+    background-color: #fcc4d8;
+    margin: 3px;
+    float: left;
+    display: inline-block;
+    min-height: 380px;
+    border-radius: 6px;
+}
+.form-component {
+    width: 62%;
+    min-height: 280px;
+    background-color: #ffe3bc;
+    margin: 3px;
+    float: left;
+    display: inline-block;
+    padding: 10px;
+    border-radius: 6px;
+
+}
+
+.history-component {
+    width: 62%;
+    min-height: 360px;
+    background-color: #c7edcb;
+    margin: 3px;
+    float: left;
+    display: inline-block;
+    /*padding-top: 10px;*/
+    padding: 10px 10px 10px 10px;
+    border-radius: 6px;
+
+}
+
+.progressbar-component {
+    background-color: #bbddf7;
+    width: 30%;
+    margin: 3px;
+    float: left;
+    display: inline-block;
+    min-height: 300px;
+    border-radius: 6px;
+    padding: 10px;
+}
+.progressbar-component-mobile {
+    background-color: #bbddf7;
+    width: 99%;
+    border-radius: 6px;
+    padding: 10px;
+    margin: 3px;
+}
+
+.input-group {
+    display: block;
+    margin: 5px auto 5px auto;
+    height: 40px;
+    font-size: 18px;
+    width: 80%;
+    font-family: "Comic Sans MS", cursive, sans-serif;
+    border-radius: 5px;
+}
+
+.error {
+    color: red;
+}
+
+.nextBtn {
+    width: 80%;
+    margin-top: 10px;
+    color: white;
+    background-color: lightseagreen;
+    font-size: 24px;
+    border-radius: 5px;
+    font-family: "Comic Sans MS", cursive, sans-serif;
+}
+
+#address {
+    font-size: 14px;
+
+}
+#instruction_text {
+    color: white;
+    font-weight: lighter;
+}
+
+.history-title {
+    width: 30%;
+}
+.history-content {
+    width: 68%;
+}
+
+@media (max-width: 580px) {
+    .form-component {
+        width: 99vw;
+        min-height: 30px;
+
+    }
+    .history-component {
+        width: 99vw;
+        min-height: 30px;
+
+    }
+    #instruction_component {
+        width: 99%;
+        min-height: 30px;
+        padding: 10px;
+    }
+}
