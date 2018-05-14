@@ -62,38 +62,77 @@ class App extends Component {
         }
     };
 
+    // doCORSRequest = (options, printResult) => {
+    //     const cors_api_url = 'https://cors-anywhere.herokuapp.com/';
+    //     const x = new XMLHttpRequest();
+    //     x.open(options.method, cors_api_url + options.url);
+    //     x.onload = x.onerror = function () {
+    //         printResult(
+    //             x.responseText || ''
+    //         );
+    //     };
+    //     if (/^POST/i.test(options.method)) {
+    //         x.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+    //     }
+    //     x.send(options.data);
+    // };
+
     requestZestimate = (text) => {
         console.log(text);
         const arr = text.split(", ");
         const adjustedArr = arr.map(x => x.replace(/ /g, "+"));
         const adjustedAddress = "address=" + adjustedArr[0] + "&citystatezip=" + adjustedArr[1] + "%2C+" + adjustedArr[2];
-        fetch("https://www.zillow.com/webservice/GetSearchResults.htm?zws-id=X1-ZWz1genmyxlkp7_3csw9&rentzestimate=true&" + adjustedAddress)
+        // this.doCORSRequest({
+        //     method: 'GET',
+        //     url: "https://www.zillow.com/webservice/GetSearchResults.htm?zws-id=X1-ZWz1genmyxlkp7_3csw9&rentzestimate=true&" + adjustedAddress,
+        // }, function printResult(text) {
+        //     // const text = res.responseXML;
+        //     const parseString = require('xml2js').parseString;
+        //     parseString(text, (err, result) => {
+        //         console.log(result);
+        //         if (Number(result['SearchResults:searchresults'].message[0].code[0]) >= 500) {
+        //             alert(result['SearchResults:searchresults'].message[0].text[0]);
+        //         } else {
+        //             const zestimate = result['SearchResults:searchresults'].response[0].results[0].result[0].rentzestimate[0].amount[0]._ ?
+        //                 result['SearchResults:searchresults'].response[0].results[0].result[0].rentzestimate[0].amount[0]._ : Math.floor(Number(result['SearchResults:searchresults'].response[0].results[0].result[0].zestimate[0].amount[0]._) * 0.05 / 12);
+        //             localStorage.setItem('zestimate', zestimate);
+        //             let data = this.state.dataCollection;
+        //             data.zestimate = zestimate;
+        //             console.log(zestimate);
+        //             this.setState({dataCollection: data, form: "expectedRent", addressValidation: true});
+        //             console.log(this.state.dataCollection, this.state.form, this.state.addressValidation);
+        //         }
+        //     });
+        // }.bind(this));
+        fetch("https://cors-anywhere.herokuapp.com/" + "https://www.zillow.com/webservice/GetSearchResults.htm?zws-id=X1-ZWz1genmyxlkp7_3csw9&rentzestimate=true&"
+        + adjustedAddress)
             .then(res => res.text())
             .then(text => {
                 const parseString = require('xml2js').parseString;
-                parseString(text,(err, result) => {
-                    console.log(result);
-                    if (Number(result['SearchResults:searchresults'].message[0].code[0]) >= 500) {
-                        alert(result['SearchResults:searchresults'].message[0].text[0]);
-                    } else {
-                        const zestimate = result['SearchResults:searchresults'].response[0].results[0].result[0].rentzestimate[0].amount[0]._ ?
-                            result['SearchResults:searchresults'].response[0].results[0].result[0].rentzestimate[0].amount[0]._ : Math.floor(Number(result['SearchResults:searchresults'].response[0].results[0].result[0].zestimate[0].amount[0]._) * 0.05 / 12);
-                        localStorage.setItem('zestimate', zestimate);
-                        let data = this.state.dataCollection;
-                        data.zestimate = zestimate;
-                        console.log(zestimate);
-                        this.setState({dataCollection: data, form: "expectedRent", addressValidation: true});
-                        console.log(this.state.dataCollection, this.state.form, this.state.addressValidation);
-                    }
-                });
+                    parseString(text, (err, result) => {
+                        console.log(result);
+                        if (Number(result['SearchResults:searchresults'].message[0].code[0]) >= 500) {
+                            alert(result['SearchResults:searchresults'].message[0].text[0]);
+                            document.getElementById("loadingScreen").setAttribute("style", "display: none");
+                        } else {
+                            let zestimate;
+                            if (result['SearchResults:searchresults'].response[0].results[0].result[0].rentzestimate[0].amount[0]._) {
+                                zestimate = result['SearchResults:searchresults'].response[0].results[0].result[0].rentzestimate[0].valuationRange[0].low[0]._ + " - " +
+                                    result['SearchResults:searchresults'].response[0].results[0].result[0].rentzestimate[0].valuationRange[0].high[0]._;
+                            } else {
+                                const temp = Math.floor(Number(result['SearchResults:searchresults'].response[0].results[0].result[0].zestimate[0].amount[0]._) * 0.05 / 12);
+                                zestimate = temp * 0.95 + " - " + temp * 1.05;
+                            }
+                            localStorage.setItem('zestimate', zestimate);
+                            let data = this.state.dataCollection;
+                            data.zestimate = zestimate;
+                            console.log(zestimate);
+                            this.setState({dataCollection: data, form: "expectedRent", addressValidation: true});
+                            console.log(this.state.dataCollection, this.state.form, this.state.addressValidation);
+                        }
+                    })
             })
-            .catch(error => {
-                //If the " No 'Access-Control-Allow-Origin'" problem happened, return a fake number
-                localStorage.setItem('zestimate', "3000");
-                let data = this.state.dataCollection;
-                data.zestimate = "3000";
-                this.setState({dataCollection: data, form: "expectedRent", addressValidation: true});
-            })
+            .catch(err => alert(err))
 
     };
     nextBtnHandler = () => {
@@ -118,6 +157,7 @@ class App extends Component {
             }
         } else if (this.state.form === "address") {
             const fullAddress = document.getElementById("address").value;
+            document.getElementById("loadingScreen") ? document.getElementById("loadingScreen").setAttribute("style", "display: true") : null;
             this.addressValidation(fullAddress);
         } else if (this.state.form === "expectedRent") {
             const rent = document.getElementById('expectedRent').value;
@@ -137,16 +177,15 @@ class App extends Component {
 
     subscription = () => {
         const headers = new Headers({
-            'Authorization': 'Bearer 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',
+            'Authorization': 'Bearer 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',
             'Content-Type': 'application/json',
         });
-
         const parsedData = {
             "personalizations": [
                 {
                     "to": [
                         {
-                            "email": "joyhou822@gmail.com"
+                            "email": localStorage.getItem("email")
                         }
                     ],
                     "subject": "Sign Up Confirmation"
@@ -158,9 +197,9 @@ class App extends Component {
             "content": [
                 {
                     "type": "text/html",
-                    "value":"<p>Congratulations! You've signed up successfully! Below is the information you provided: </p>" +
-                        "<br /><p><strong>First Name: </strong>" + localStorage.getItem('fName') + "</p><p><strong>LastName: </strong>" +
-                    localStorage.getItem('lName') + "</p>" + "<p><strong>Email: </strong>" + localStorage.getItem('email') +"</p>" +
+                    "value": "<p>Congratulations! You've signed up successfully! Below is the information you provided: </p>" +
+                    "<br /><p><strong>First Name: </strong>" + localStorage.getItem('fName') + "</p><p><strong>LastName: </strong>" +
+                    localStorage.getItem('lName') + "</p>" + "<p><strong>Email: </strong>" + localStorage.getItem('email') + "</p>" +
                     "<p><strong>Phone Number: </strong>" + localStorage.getItem('phone') + "</p><p>" +
                     "<strong>Address: </strong>" + localStorage.getItem('address') + "</p><p><strong>Zestimate: </strong>" + localStorage.getItem('zestimate')
                     + "</p><p><strong>Expected Rent: </strong>" + localStorage.getItem('expectedRent') + "</p>"
@@ -196,6 +235,8 @@ class App extends Component {
     };
 
     render() {
+        let loadingScreen = localStorage.getItem("address") ?
+            <p style={{display: "none", width: "70%", margin: "auto"}} id="loadingScreen">Please wait while we getting your Zestimate Rent ...</p> : null;
         let mobile = this.state.screenWidth < 580;
         let form, instructionText;
         let step = 0;
@@ -203,7 +244,6 @@ class App extends Component {
             form =
                 <div className="form-component">
                     <PersonalInfo inputHandler={this.inputChangeHandler}/>
-                    {/*TODO: next button image*/}
                     <button onClick={() => this.nextBtnHandler()} className="nextBtn">Next</button>
                 </div>;
             instructionText = "Let us know you";
@@ -213,6 +253,7 @@ class App extends Component {
                     <AddressInput inputHandler={this.inputChangeHandler}/>
                     <button onClick={() => this.nextBtnHandler()} className="nextBtn">Next</button>
                     <button onClick={() => this.goBackBtnHandler()} className="nextBtn">Go Back</button>
+                    {loadingScreen}
                 </div>;
             instructionText = "Where is your property?";
             step = 1;
@@ -221,7 +262,7 @@ class App extends Component {
             form =
                 <div className="form-component">
                     <p>Zestimate Rent: </p>
-                    <p>${zestimate * 0.95} - ${zestimate * 1.05}</p>
+                    <p>${zestimate}</p>
                     <RentInput inputHandler={this.inputChangeHandler}/>
                     <button onClick={() => this.nextBtnHandler()} className="nextBtn">Next</button>
                     <button onClick={() => this.goBackBtnHandler()} className="nextBtn">Go Back</button>
@@ -239,19 +280,20 @@ class App extends Component {
         }
 
         let progressBar = <Steps direction="vertical" current={step} className="progressbar-component">
-            <Step title="personal Information" />
-            <Step title="Address" />
-            <Step title="Rent" />
-            <Step title="Finish" />
+            <Step title="personal Information"/>
+            <Step title="Address"/>
+            <Step title="Rent"/>
+            <Step title="Finish"/>
         </Steps>;
-            let progressBar_mobile =
-                <div className="progressbar-component-mobile">
+        let progressBar_mobile =
+            <div className="progressbar-component-mobile">
                 <Steps current={step} labelPlacement="vertical" size="small" style={{marginLeft: "-20px"}}>
-                <Step title="Personal Info"/>
-                <Step title="Address" />
-                <Step title="Rent" />
-                <Step title="Finish" />
+                    <Step title="Personal Info"/>
+                    <Step title="Address"/>
+                    <Step title="Rent"/>
+                    <Step title="Finish"/>
                 </Steps></div>;
+
         if (!mobile) {
             return (
                 <div className="App">
@@ -267,7 +309,7 @@ class App extends Component {
                 <div className="App-mobile">
                     {progressBar_mobile}
                     {form}
-                    <History step={this.state.form} />
+                    <History step={this.state.form}/>
                     <Instruction text={instructionText}/>
                     <button onClick={() => localStorage.clear()} className="nextBtn">Clear data</button>
                 </div>
@@ -342,41 +384,41 @@ class History extends Component {
     render() {
         // const data = JSON.parse(localStorage.getItem('user_data'));
         // if (data) {
-            return (
-                <div className="history-component">
-                    <h2>History</h2>
-                    <table>
-                        {localStorage.getItem('fName') ? <tr>
-                            <th className="history-title">First Name</th>
-                            <td className="history-content">{localStorage.getItem('fName')}</td>
-                        </tr> : null}
-                        {localStorage.getItem('lName') ? <tr>
-                            <th className="history-title">Last Name</th>
-                            <td className="history-content">{localStorage.getItem('lName')}</td>
-                        </tr> : null}
-                        {localStorage.getItem('email') ? <tr>
-                            <th className="history-title">Email</th>
-                            <td className="history-content">{localStorage.getItem('email')}</td>
-                        </tr> : null}
-                        {localStorage.getItem('phone') ? <tr>
-                            <th className="history-title">Phone Number</th>
-                            <td className="history-content">{localStorage.getItem('phone')}</td>
-                        </tr> : null}
-                        {localStorage.getItem('address') ? <tr>
-                            <th className="history-title">address</th>
-                            <td className="history-content">{localStorage.getItem('address')}</td>
-                        </tr> : null}
-                        {localStorage.getItem('zestimate') ? <tr>
-                            <th className="history-title">Zestimate Rent</th>
-                            <td className="history-content">{localStorage.getItem('zestimate')}</td>
-                        </tr> : null}
-                        {localStorage.getItem('expectedRent') ? <tr>
-                            <th className="history-title">Expected Rent</th>
-                            <td className="history-content">{localStorage.getItem('expectedRent')}</td>
-                        </tr> : null}
-                    </table>
-                </div>
-            )
+        return (
+            <div className="history-component">
+                <h2>History</h2>
+                <table>
+                    {localStorage.getItem('fName') ? <tr>
+                        <th className="history-title">First Name</th>
+                        <td className="history-content">{localStorage.getItem('fName')}</td>
+                    </tr> : null}
+                    {localStorage.getItem('lName') ? <tr>
+                        <th className="history-title">Last Name</th>
+                        <td className="history-content">{localStorage.getItem('lName')}</td>
+                    </tr> : null}
+                    {localStorage.getItem('email') ? <tr>
+                        <th className="history-title">Email</th>
+                        <td className="history-content">{localStorage.getItem('email')}</td>
+                    </tr> : null}
+                    {localStorage.getItem('phone') ? <tr>
+                        <th className="history-title">Phone Number</th>
+                        <td className="history-content">{localStorage.getItem('phone')}</td>
+                    </tr> : null}
+                    {localStorage.getItem('address') ? <tr>
+                        <th className="history-title">address</th>
+                        <td className="history-content">{localStorage.getItem('address')}</td>
+                    </tr> : null}
+                    {localStorage.getItem('zestimate') ? <tr>
+                        <th className="history-title">Zestimate Rent</th>
+                        <td className="history-content">{localStorage.getItem('zestimate')}</td>
+                    </tr> : null}
+                    {localStorage.getItem('expectedRent') ? <tr>
+                        <th className="history-title">Expected Rent</th>
+                        <td className="history-content">{localStorage.getItem('expectedRent')}</td>
+                    </tr> : null}
+                </table>
+            </div>
+        )
         // } else {
         //     return (
         //     <div className="history-component" >

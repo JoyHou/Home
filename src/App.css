@@ -99,7 +99,9 @@ body {
 }
 #instruction_text {
     margin-top: 20%;
-    font-size: 14px;
+    font-size: 16px;
+    padding: 10%;
+    line-height: 120%;
 }
 
 .history-title {
