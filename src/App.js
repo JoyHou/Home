@@ -12,7 +12,8 @@ class App extends Component {
             screenWidth: window.innerWidth,
             form: "personalInfo",
             dataCollection: {},
-            addressValidation: null
+            addressValidation: null,
+            initialed: false,
         }
     }
 
@@ -35,7 +36,6 @@ class App extends Component {
         this.setState({screenWidth: window.innerWidth});
     };
     addressValidation = (text) => {
-        console.log(text);
         if (window.google) {
             const service = new window.google.maps.places.AutocompleteService();
             const callBack = (prediction, status) => {
@@ -62,55 +62,17 @@ class App extends Component {
         }
     };
 
-    // doCORSRequest = (options, printResult) => {
-    //     const cors_api_url = 'https://cors-anywhere.herokuapp.com/';
-    //     const x = new XMLHttpRequest();
-    //     x.open(options.method, cors_api_url + options.url);
-    //     x.onload = x.onerror = function () {
-    //         printResult(
-    //             x.responseText || ''
-    //         );
-    //     };
-    //     if (/^POST/i.test(options.method)) {
-    //         x.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-    //     }
-    //     x.send(options.data);
-    // };
-
     requestZestimate = (text) => {
-        console.log(text);
         const arr = text.split(", ");
         const adjustedArr = arr.map(x => x.replace(/ /g, "+"));
         const adjustedAddress = "address=" + adjustedArr[0] + "&citystatezip=" + adjustedArr[1] + "%2C+" + adjustedArr[2];
-        // this.doCORSRequest({
-        //     method: 'GET',
-        //     url: "https://www.zillow.com/webservice/GetSearchResults.htm?zws-id=X1-ZWz1genmyxlkp7_3csw9&rentzestimate=true&" + adjustedAddress,
-        // }, function printResult(text) {
-        //     // const text = res.responseXML;
-        //     const parseString = require('xml2js').parseString;
-        //     parseString(text, (err, result) => {
-        //         console.log(result);
-        //         if (Number(result['SearchResults:searchresults'].message[0].code[0]) >= 500) {
-        //             alert(result['SearchResults:searchresults'].message[0].text[0]);
-        //         } else {
-        //             const zestimate = result['SearchResults:searchresults'].response[0].results[0].result[0].rentzestimate[0].amount[0]._ ?
-        //                 result['SearchResults:searchresults'].response[0].results[0].result[0].rentzestimate[0].amount[0]._ : Math.floor(Number(result['SearchResults:searchresults'].response[0].results[0].result[0].zestimate[0].amount[0]._) * 0.05 / 12);
-        //             localStorage.setItem('zestimate', zestimate);
-        //             let data = this.state.dataCollection;
-        //             data.zestimate = zestimate;
-        //             console.log(zestimate);
-        //             this.setState({dataCollection: data, form: "expectedRent", addressValidation: true});
-        //             console.log(this.state.dataCollection, this.state.form, this.state.addressValidation);
-        //         }
-        //     });
-        // }.bind(this));
+
         fetch("https://cors-anywhere.herokuapp.com/" + "https://www.zillow.com/webservice/GetSearchResults.htm?zws-id=X1-ZWz1genmyxlkp7_3csw9&rentzestimate=true&"
         + adjustedAddress)
             .then(res => res.text())
             .then(text => {
                 const parseString = require('xml2js').parseString;
                     parseString(text, (err, result) => {
-                        console.log(result);
                         if (Number(result['SearchResults:searchresults'].message[0].code[0]) >= 500) {
                             alert(result['SearchResults:searchresults'].message[0].text[0]);
                             document.getElementById("loadingScreen").setAttribute("style", "display: none");
@@ -126,9 +88,7 @@ class App extends Component {
                             localStorage.setItem('zestimate', zestimate);
                             let data = this.state.dataCollection;
                             data.zestimate = zestimate;
-                            console.log(zestimate);
                             this.setState({dataCollection: data, form: "expectedRent", addressValidation: true});
-                            console.log(this.state.dataCollection, this.state.form, this.state.addressValidation);
                         }
                     })
             })
@@ -164,7 +124,6 @@ class App extends Component {
             this.requiredInputHandler(rent.length, 'rent-error');
             this.requiredInputHandler(Number(rent), 'rent-error');
             if (rent.length > 0 && Number(rent)) {
-                console.log(this.state.dataCollection);
                 if (!localStorage.getItem('zestimate')) {
                     localStorage.setItem('zestimate', this.state.dataCollection.zestimate);
                 }
@@ -177,7 +136,7 @@ class App extends Component {
 
     subscription = () => {
         const headers = new Headers({
-            'Authorization': 'Bearer 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',
+            'Authorization': 'Bearer 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',
             'Content-Type': 'application/json',
         });
         const parsedData = {
@@ -192,7 +151,7 @@ class App extends Component {
                 }
             ],
             "from": {
-                "email": "joyhou822@gmail.com"
+                "email": "zhou@clarku.edu"
             },
             "content": [
                 {
@@ -207,15 +166,15 @@ class App extends Component {
             ]
         };
 
-        fetch("https://api.sendgrid.com/v3/mail/send", {
+        fetch("https://cors-anywhere.herokuapp.com/" + "https://api.sendgrid.com/v3/mail/send", {
             method: "POST",
             body: JSON.stringify(parsedData),
             headers: headers,
-        }).then(res => res.text()).then(data => console.log(data))
+        }).then(res => res.text())
     };
     goBackBtnHandler = () => {
         if (this.state.form === "address") {
-            this.setState({form: "personalInfo", addressValidation: null})
+            this.setState({form: "personalInfo", addressValidation: null, initialed: false})
         } else if (this.state.form === "expectedRent") {
             this.setState({form: "address", addressValidation: null})
         }
@@ -224,8 +183,9 @@ class App extends Component {
         let data = this.state.dataCollection;
         data[e.target.id] = e.target.value;
         this.setState({dataCollection: data});
-        if (this.state.form === "address") {
+        if (this.state.form === "address" && !this.state.initialed) {
             this.autocomplete();
+            this.setState({initialed: true});
         }
     };
     autocomplete = () => {
